@@ -165,6 +165,8 @@
 		1AAB47511B4470C30089E693 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0720;
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "James Tang";
 				TargetAttributes = {
@@ -421,6 +423,7 @@
 				1AAB477A1B4470C30089E693 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		1AAB477B1B4470C30089E693 /* Build configuration list for PBXNativeTarget "DropInFlowLayoutTests" */ = {
 			isa = XCConfigurationList;
@@ -429,6 +432,7 @@
 				1AAB477D1B4470C30089E693 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

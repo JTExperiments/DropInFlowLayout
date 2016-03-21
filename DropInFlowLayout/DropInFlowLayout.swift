@@ -9,9 +9,9 @@
 import UIKit
 
 extension Array {
-    mutating func replace(items : [T], compareHandler:((current:T, target:T)->Bool)) {
-        var reversed = items.reverse()
-        var copy = self.map { current -> T in
+    mutating func replace(items : [Element], compareHandler:((current:Element, target:Element)->Bool)) {
+        var reversed = Array(items.reverse())
+        var copy = self.map { current -> Element in
             for target in reversed {
                 if compareHandler(current:current, target: target) {
                     return target
@@ -32,7 +32,7 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
     var draggingIndexPath: NSIndexPath?
     var gestureRecognizer : UIPanGestureRecognizer!
 
-    required init(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.animator = UIDynamicAnimator(collectionViewLayout: self)
     }
@@ -46,8 +46,10 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
             collectionView.addGestureRecognizer(self.gestureRecognizer)
         }
     }
-    override func layoutAttributesForElementsInRect(rect: CGRect) -> [AnyObject]? {
-        var items = super.layoutAttributesForElementsInRect(rect) as! [UICollectionViewLayoutAttributes]
+    override func layoutAttributesForElementsInRect(rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+      guard var items = super.layoutAttributesForElementsInRect(rect) else {
+        return nil;
+      }
 
         let adjusted = items.map { (item) -> UICollectionViewLayoutAttributes in
             return self.layoutAttributesForItemAtIndexPath(item.indexPath)
@@ -58,11 +60,11 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
         })
 
         for item in items {
-            println("lafeir \(rect), row: \(item.indexPath.row) frame:\(item.frame)) alpha: \(item.alpha), hidden: \(item.hidden)")
+            print("lafeir \(rect), row: \(item.indexPath.row) frame:\(item.frame)) alpha: \(item.alpha), hidden: \(item.hidden)")
         }
 
         let indexPath = NSIndexPath(forItem: 0, inSection: 0)
-        println("visibleCells: \(self.collectionView?.visibleCells())")
+        print("visibleCells: \(self.collectionView?.visibleCells())")
 
         return items
     }
@@ -71,8 +73,10 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
         if let attribute = self.animator.layoutAttributesForCellAtIndexPath(indexPath) {
             return attribute
         } else {
-            var attribute = super.layoutAttributesForItemAtIndexPath(indexPath)
-            if let index = find(self.dropped, indexPath) {
+          guard let attribute = super.layoutAttributesForItemAtIndexPath(indexPath) else {
+            return nil;
+          }
+            if let index = self.dropped.indexOf(indexPath) {
                 attribute.center.y += self.collectionView!.frame.size.height
             }
             return attribute
@@ -86,7 +90,7 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
         {
             var center = item.center
             center.y += collectionView.frame.size.height
-            if let index = find(self.dropped, indexPath) {
+            if let index = self.dropped.indexOf(indexPath) {
                 self.dropped.removeAtIndex(index)
             }
             self.bounceToCenterForIndexPath(indexPath, fromPosition:center)
@@ -103,7 +107,7 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
             self.animator.removeBehavior(behaviour)
             self.droppingIndexPaths[indexPath] = nil
         }
-        if let index = find(self.dropped, indexPath) {
+        if let index = self.dropped.indexOf(indexPath) {
             self.dropped.removeAtIndex(index)
         }
     }
@@ -137,9 +141,12 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
                     if let behavior = self.droppingIndexPaths[indexPath] {
                         self.animator.removeBehavior(behavior)
                     }
-                    let item = super.layoutAttributesForItemAtIndexPath(indexPath)
+                    guard let item = super.layoutAttributesForItemAtIndexPath(indexPath) else {
+                        return;
+                    }
 
                     let offset = UIOffsetMake(location.x - item.center.x, location.y - item.center.y)
+
                     let attachment = UIAttachmentBehavior(item: item, offsetFromCenter: offset, attachedToAnchor: location)
 
                     self.droppingIndexPaths[indexPath] = attachment
@@ -155,7 +162,9 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
                 case .Ended, .Cancelled:
                     if let behaviour = self.droppingIndexPaths[indexPath] as? UIAttachmentBehavior {
 
-                        let item = super.layoutAttributesForItemAtIndexPath(indexPath)
+                        guard let item = super.layoutAttributesForItemAtIndexPath(indexPath) else {
+                            return;
+                        }
 
                         let targetCenter = item.center
 
@@ -176,7 +185,7 @@ class DropInFlowLayout: UICollectionViewFlowLayout, UIGestureRecognizerDelegate 
                 default: break
                 }
             } else {
-                println("DropInFlowLayout: something strange! missing NSIndexPath")
+                print("DropInFlowLayout: something strange! missing NSIndexPath")
             }
         }
     }
